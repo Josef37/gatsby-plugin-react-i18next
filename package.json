@@ -44,7 +44,7 @@
     "build:ts": "babel src --out-dir dist --extensions .ts,.tsx",
     "build:defs": "tsc --declaration --outDir dist --emitDeclarationOnly",
     "dev": "babel -w src --out-dir dist --extensions .ts,.tsx",
-    "prepare": "npm run build:ts && npm run build:defs",
+    "prepare": "rimraf ./dist && npm run build:ts && npm run build:defs",
     "format": "prettier --write 'src/**/*.{js,jsx,json,ts,tsx,md}'",
     "release": "release-it"
   },
@@ -60,6 +60,7 @@
     "react-dom": "^18.3.1",
     "react-i18next": "^15.6.1",
     "release-it": "^19.0.4",
+    "rimraf": "^6.0.1",
     "simple-git-hooks": "^2.13.1",
     "typescript": "^5.9.2"
   },
