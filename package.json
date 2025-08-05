@@ -44,7 +44,7 @@
     "build:ts": "babel src --out-dir dist --extensions .ts,.tsx",
     "build:defs": "tsc --declaration --outDir dist --emitDeclarationOnly",
     "dev": "babel -w src --out-dir dist --extensions .ts,.tsx",
-    "prepare": "NODE_ENV=production yarn run build:ts && yarn run build:defs",
+    "prepare": "npm run build:ts && npm run build:defs",
     "format": "prettier --write 'src/**/*.{js,jsx,json,ts,tsx,md}'",
     "release": "release-it"
   },
@@ -77,7 +77,7 @@
     "react-i18next": ">= 12.0.0"
   },
   "simple-git-hooks": {
-    "pre-commit": "yarn pretty-quick --staged"
+    "pre-commit": "npx pretty-quick --staged"
   },
   "release-it": {
     "git": {
@@ -92,8 +92,8 @@
     },
     "hooks": {
       "before:init": [
-        "yarn run format",
-        "yarn run prepare"
+        "npm run format",
+        "npm run prepare"
       ]
     }
   }
