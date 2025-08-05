@@ -1,5 +1,4 @@
 import type {CreatePageArgs, Page} from 'gatsby';
-import BP from 'bluebird';
 import {match} from 'path-to-regexp';
 import type {PageContext, PageOptions, PluginOptions} from '../types';
 
@@ -94,20 +93,22 @@ export const onCreatePage = async (
   } catch {}
   createPage(newPage);
 
-  await BP.map(alternativeLanguages, async (lng) => {
-    const localePage = await generatePage({
-      language: lng,
-      path: `${lng}${page.path}`,
-      matchPath: page.matchPath ? `/${lng}${page.matchPath}` : undefined,
-      routed: true
-    });
-    const regexp = new RegExp('/404/?$');
-    if (regexp.test(localePage.path)) {
-      localePage.matchPath = `/${lng}/*`;
-    }
-    if (localePage.matchPath !== undefined) {
-      localePage.matchPath = `/${lng}${localePage.matchPath}`;
-    }
-    createPage(localePage);
-  });
+  await Promise.all(
+    alternativeLanguages.map(async (lng) => {
+      const localePage = await generatePage({
+        language: lng,
+        path: `${lng}${page.path}`,
+        matchPath: page.matchPath ? `/${lng}${page.matchPath}` : undefined,
+        routed: true
+      });
+      const regexp = new RegExp('/404/?$');
+      if (regexp.test(localePage.path)) {
+        localePage.matchPath = `/${lng}/*`;
+      }
+      if (localePage.matchPath !== undefined) {
+        localePage.matchPath = `/${lng}${localePage.matchPath}`;
+      }
+      createPage(localePage);
+    })
+  );
 };
