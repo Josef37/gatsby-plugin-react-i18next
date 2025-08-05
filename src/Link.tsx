@@ -1,6 +1,6 @@
 import React, {useContext} from 'react';
 import {I18nextContext} from './i18nextContext';
-import {Link as GatsbyLink, GatsbyLinkProps} from 'gatsby';
+import {Link as GatsbyLink, type GatsbyLinkProps} from 'gatsby';
 import {LANGUAGE_KEY} from './types';
 
 type Props = GatsbyLinkProps<any> & {language?: string};

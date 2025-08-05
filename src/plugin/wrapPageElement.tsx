@@ -1,17 +1,17 @@
 import React from 'react';
-import {withPrefix, WrapPageElementBrowserArgs} from 'gatsby';
+import {withPrefix, type WrapPageElementBrowserArgs} from 'gatsby';
 // @ts-ignore
 import browserLang from 'browser-lang';
 import {
-  I18NextContext,
+  type I18NextContext,
   LANGUAGE_KEY,
-  PageContext,
-  PluginOptions,
-  LocaleNode,
-  Resource,
-  ResourceKey
+  type PageContext,
+  type PluginOptions,
+  type LocaleNode,
+  type Resource,
+  type ResourceKey
 } from '../types';
-import i18next, {i18n as I18n} from 'i18next';
+import i18next, {type i18n as I18n} from 'i18next';
 import {I18nextProvider} from 'react-i18next';
 import {I18nextContext} from '../i18nextContext';
 import outdent from 'outdent';
