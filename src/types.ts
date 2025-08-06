@@ -4,47 +4,48 @@ import type {NodeInput} from 'gatsby';
 export const LANGUAGE_KEY = 'gatsby-i18next-language';
 
 export type {Resource, ResourceLanguage, ResourceKey} from 'i18next';
+
 type Language = string;
 type Path = string;
 
 export type PageOptions = {
   matchPath: string;
   getLanguageFromPath?: boolean;
-  excludeLanguages?: string[];
-  languages?: string[];
+  excludeLanguages?: Language[];
+  languages?: Language[];
 };
 
 export type PluginOptions = {
-  languages: string[];
-  defaultLanguage: string;
+  languages: Language[];
+  defaultLanguage: Language;
   generateDefaultLanguagePage: boolean;
-  redirect: boolean;
+  redirect?: boolean;
   siteUrl?: string;
   i18nextOptions: InitOptions;
   pages?: Array<PageOptions>;
   pathTranslations?: Record<Language, Record<Path, Path>>;
   localeJsonSourceName?: string;
   localeJsonNodeName?: string;
-  fallbackLanguage?: string;
+  fallbackLanguage?: Language;
   trailingSlash?: 'always' | 'never' | 'ignore';
   verbose?: boolean;
 };
 
 export type I18NextContext = {
-  language: string;
+  language: Language;
   routed: boolean;
-  languages: string[];
-  defaultLanguage: string;
+  languages: Language[];
+  defaultLanguage: Language;
   generateDefaultLanguagePage: boolean;
-  originalPath: string;
-  path: string;
+  originalPath: Path;
+  path: Path;
   siteUrl?: string;
   pathTranslations: PluginOptions['pathTranslations'];
 };
 
 export type PageContext = {
-  path?: string;
-  language: string;
+  path?: Path;
+  language: Language;
   i18n: I18NextContext;
 };
 
@@ -91,7 +92,7 @@ export interface FileSystemNode extends Node {
 }
 
 export interface LocaleNodeInput extends NodeInput {
-  language: string;
+  language: Language;
   ns: string;
   data: string;
   fileAbsolutePath: string;
