@@ -1,49 +1,31 @@
 import type {CreateNodeArgs, Node} from 'gatsby';
 import type {FileSystemNode, PluginOptions, LocaleNodeInput} from '../types';
+import {DEFAULT_SOURCE_NAME} from '../constants';
 
-export function unstable_shouldOnCreateNode({node}: {node: Node}) {
-  // We only care about JSON content.
-  return node.internal.mediaType === `application/json`;
-}
+export const shouldOnCreateNode = (
+  {node}: {node: Node},
+  {localeJsonSourceName = DEFAULT_SOURCE_NAME}: PluginOptions
+) => {
+  if (node.internal.type !== 'File') return false;
+
+  // User explicitly disabled the plugin.
+  if (localeJsonSourceName == null) return false;
+
+  if (localeJsonSourceName !== node.sourceInstanceName) return false;
+
+  if (node.internal.mediaType !== `application/json`) return false;
+
+  return true;
+};
 
 export const onCreateNode = async (
-  {
-    node,
-    actions,
-    loadNodeContent,
-    createNodeId,
-    createContentDigest,
-    reporter
-  }: // @ts-ignore
-  CreateNodeArgs<FileSystemNode>,
-  {localeJsonSourceName = 'locale', verbose = true}: PluginOptions
+  // @ts-ignore
+  args: CreateNodeArgs<FileSystemNode>,
+  pluginOptions: PluginOptions
 ) => {
-  if (!unstable_shouldOnCreateNode({node})) {
-    return;
-  }
-
-  const {
-    absolutePath,
-    internal: {type},
-    sourceInstanceName,
-    relativeDirectory,
-    name,
-    id
-  } = node;
-
-  // Currently only support file resources
-  if (type !== 'File') {
-    return;
-  }
-
-  // User is not using this feature
-  if (localeJsonSourceName == null) {
-    return;
-  }
-
-  if (sourceInstanceName !== localeJsonSourceName) {
-    return;
-  }
+  const {node, actions, loadNodeContent, createNodeId, createContentDigest, reporter} = args;
+  const {absolutePath, relativeDirectory, name, id} = node;
+  const {verbose = true} = pluginOptions;
 
   let activity;
   if (verbose) {
