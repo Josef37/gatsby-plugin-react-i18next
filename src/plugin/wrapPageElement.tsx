@@ -82,9 +82,8 @@ export const wrapPageElement = (
         ? path.replace(originalPath, pathTranslation)
         : `/${requestedLanguage}${path}`;
 
-      const newUrl = withPrefix(`${newPath}${location.search}${location.hash}`);
-        // @ts-ignore
-        window.___replace(newUrl);
+      const newUrl = `${newPath}${location.search}${location.hash}`;
+      navigate(newUrl, {replace: true});
       return null;
     }
   }
