@@ -322,6 +322,12 @@ const SpanishAboutLink = () => (
 );
 ```
 
+### `useLocalizedUrl`
+
+Used by the `<Link>` component to translate/localize URLs.
+
+You can use this hook to access the same logic in your components.
+
 ### `I18nextContext`
 
 Use this react context to access language information about the page
