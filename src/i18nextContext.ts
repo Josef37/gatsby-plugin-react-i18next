@@ -8,5 +8,6 @@ export const I18nextContext = React.createContext<I18NextContext>({
   defaultLanguage: 'en',
   generateDefaultLanguagePage: false,
   originalPath: '/',
-  path: '/'
+  path: '/',
+  pathTranslations: {}
 });

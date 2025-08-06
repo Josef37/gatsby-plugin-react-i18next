@@ -93,7 +93,10 @@ plugins: [
           matchPath: '/preview',
           languages: ['en']
         }
-      ]
+      ],
+      pathTranslations: {
+        de: {'/products': '/produkte'}
+      }
     }
   }
 ];
@@ -286,12 +289,13 @@ const Header = ({siteTitle}) => {
 | languages                   | string[] | supported language keys                                                                                                                                                                                                                                                                      |
 | defaultLanguage             | string   | default language when visiting `/page` instead of `/es/page`                                                                                                                                                                                                                                 |
 | fallbackLanguage            | string   | optionally fallback to a different language than the defaultLanguage                                                                                                                                                                                                                         |
-| generateDefaultLanguagePage | boolean  | generate dedicated page for default language. e.g) `/en/page`. It is useful when you need page urls for all languages. For example, server-side [redirect](https://www.gatsbyjs.com/docs/reference/config-files/actions/#createRedirect) using `Accept-Language` header. Default is `false`. |
+| generateDefaultLanguagePage | boolean  | generate dedicated page for default language. e.g. `/en/page`. It is useful when you need page urls for all languages. For example, server-side [redirect](https://www.gatsbyjs.com/docs/reference/config-files/actions/#createRedirect) using `Accept-Language` header. Default is `false`. |
 | redirect                    | boolean  | if the value is `true`, `/` or `/page-2` will be redirected to the user's preferred language router. e.g) `/es` or `/es/page-2`. Otherwise, the pages will render `defaultLangugage` language. Default is `true`                                                                             |
 | siteUrl                     | string   | public site url, is used to generate language specific meta tags                                                                                                                                                                                                                             |
 | pages                       | array    | an array of [page options](#page-options) used to modify plugin behaviour for specific pages                                                                                                                                                                                                 |
 | i18nextOptions              | object   | [i18next configuration options](https://www.i18next.com/overview/configuration-options)                                                                                                                                                                                                      |
 | verbose                     | boolean  | Verbose output. Default is true                                                                                                                                                                                                                                                              |
+| pathTranslations            | object   | Define path translations for each language. E.g. `{ de: { '/help': '/hilfe' } }` will overwrite `/de/help` with `/hilfe`. Unspecified languages will be unaffected, e.g. `/es/help`. Make sure to match trailing slashes with your gatsby configuration.                                     |
 
 ## Page options
 

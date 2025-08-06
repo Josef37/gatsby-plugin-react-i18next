@@ -4,6 +4,8 @@ import type {NodeInput} from 'gatsby';
 export const LANGUAGE_KEY = 'gatsby-i18next-language';
 
 export type {Resource, ResourceLanguage, ResourceKey} from 'i18next';
+type Language = string;
+type Path = string;
 
 export type PageOptions = {
   matchPath: string;
@@ -19,7 +21,8 @@ export type PluginOptions = {
   redirect: boolean;
   siteUrl?: string;
   i18nextOptions: InitOptions;
-  pages: Array<PageOptions>;
+  pages?: Array<PageOptions>;
+  pathTranslations?: Record<Language, Record<Path, Path>>;
   localeJsonSourceName?: string;
   localeJsonNodeName?: string;
   fallbackLanguage?: string;
@@ -36,6 +39,7 @@ export type I18NextContext = {
   originalPath: string;
   path: string;
   siteUrl?: string;
+  pathTranslations: PluginOptions['pathTranslations'];
 };
 
 export type PageContext = {

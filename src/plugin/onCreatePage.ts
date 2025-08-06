@@ -16,7 +16,8 @@ export const onCreatePage = async (
     defaultLanguage = 'en',
     generateDefaultLanguagePage = false,
     languages = ['en'],
-    pages = []
+    pages = [],
+    pathTranslations = {}
   } = pluginOptions;
 
   type GeneratePageParams = {
@@ -49,7 +50,8 @@ export const onCreatePage = async (
           generateDefaultLanguagePage,
           routed,
           originalPath,
-          path
+          path,
+          pathTranslations
         }
       }
     };
@@ -78,6 +80,7 @@ export const onCreatePage = async (
     const result = match<{lang: string}>(pageOptions.matchPath)(page.path);
     if (!result) return;
     const language = languages.find((lng) => lng === result.params.lang) || defaultLanguage;
+    // TODO: This breaks when the language path is not the first starting with `/language`.
     const originalPath = page.path.replace(`/${language}`, '');
     const routed = Boolean(result.params.lang);
     newPage = await generatePage({language, originalPath, routed, pageOptions});
@@ -95,16 +98,28 @@ export const onCreatePage = async (
 
   await Promise.all(
     alternativeLanguages.map(async (lng) => {
+      let path = `/${lng}${page.path}`;
+      let matchPath = page.matchPath ? `/${lng}${page.matchPath}` : undefined;
+
+      const pathTranslation = pathTranslations?.[lng]?.[page.path];
+      if (pathTranslation) {
+        path = pathTranslation;
+        matchPath = page.matchPath?.replace(page.path, pathTranslation);
+      }
+
       const localePage = await generatePage({
         language: lng,
-        path: `/${lng}${page.path}`,
-        matchPath: page.matchPath ? `/${lng}${page.matchPath}` : undefined,
-        routed: true
+        path,
+        matchPath,
+        routed: true,
+        pageOptions
       });
-      const regexp = new RegExp('/404/?$');
-      if (regexp.test(localePage.path)) {
+
+      const is404Page = new RegExp('/404/?$').test(localePage.path);
+      if (is404Page) {
         localePage.matchPath = `/${lng}/*`;
       }
+
       createPage(localePage);
     })
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import {withPrefix, type WrapPageElementBrowserArgs} from 'gatsby';
+import {withPrefix, navigate, type WrapPageElementBrowserArgs} from 'gatsby';
 // @ts-ignore
 import browserLang from 'browser-lang';
 import {
@@ -48,44 +48,44 @@ export const wrapPageElement = (
     siteUrl,
     localeJsonNodeName = 'locales',
     fallbackLanguage,
-    trailingSlash
+    trailingSlash,
+    pathTranslations = {}
   }: PluginOptions
 ) => {
   if (!props) return;
   const {data, pageContext, location} = props;
   const {routed, language, languages, originalPath, defaultLanguage, path} = pageContext.i18n;
-  const isRedirect = redirect && !routed;
+  const shouldRedirect = redirect && !routed;
 
-  if (isRedirect) {
-    const {search} = location;
+  const isBrowser = typeof window !== 'undefined';
+  if (shouldRedirect && isBrowser) {
+    let requestedLanguage =
+      window.localStorage.getItem(LANGUAGE_KEY) ||
+      browserLang({
+        languages,
+        fallback: fallbackLanguage || language
+      });
 
-    // Skip build, Browsers only
-    if (typeof window !== 'undefined') {
-      let detected =
-        window.localStorage.getItem(LANGUAGE_KEY) ||
-        browserLang({
-          languages,
-          fallback: fallbackLanguage || language
-        });
+    if (!languages.includes(requestedLanguage)) {
+      requestedLanguage = language;
+    }
 
-      if (!languages.includes(detected)) {
-        detected = language;
-      }
+    window.localStorage.setItem(LANGUAGE_KEY, requestedLanguage);
 
-      window.localStorage.setItem(LANGUAGE_KEY, detected);
+    if (requestedLanguage !== defaultLanguage) {
+      const pathTranslation = pathTranslations?.[requestedLanguage]?.[originalPath];
 
-      if (detected !== defaultLanguage) {
-        const queryParams = search || '';
-        const stripTrailingSlash = trailingSlash === 'never';
-        const newUrl = withPrefix(
-          `/${detected}${removePathPrefix(location.pathname, stripTrailingSlash)}${queryParams}${
-            location.hash
-          }`
-        );
+      const stripTrailingSlash = trailingSlash === 'never';
+      const path = removePathPrefix(location.pathname, stripTrailingSlash);
+
+      const newPath = pathTranslation
+        ? path.replace(originalPath, pathTranslation)
+        : `/${requestedLanguage}${path}`;
+
+      const newUrl = withPrefix(`${newPath}${location.search}${location.hash}`);
         // @ts-ignore
         window.___replace(newUrl);
-        return null;
-      }
+      return null;
     }
   }
 
@@ -161,7 +161,8 @@ export const wrapPageElement = (
     defaultLanguage,
     generateDefaultLanguagePage,
     siteUrl,
-    path
+    path,
+    pathTranslations
   };
 
   return withI18next(i18n, context)(element);
