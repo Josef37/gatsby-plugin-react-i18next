@@ -1,8 +1,6 @@
 import type {InitOptions} from 'i18next';
 import type {NodeInput} from 'gatsby';
 
-export const LANGUAGE_KEY = 'gatsby-i18next-language';
-
 export type {Resource, ResourceLanguage, ResourceKey} from 'i18next';
 
 type Language = string;

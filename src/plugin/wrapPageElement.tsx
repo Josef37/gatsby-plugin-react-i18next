@@ -4,13 +4,13 @@ import {withPrefix, navigate, type WrapPageElementBrowserArgs} from 'gatsby';
 import browserLang from 'browser-lang';
 import {
   type I18NextContext,
-  LANGUAGE_KEY,
   type PageContext,
   type PluginOptions,
   type LocaleNode,
   type Resource,
   type ResourceKey
 } from '../types';
+import {LANGUAGE_KEY} from '../constants';
 import i18next, {type i18n as I18n} from 'i18next';
 import {I18nextProvider} from 'react-i18next';
 import {I18nextContext} from '../i18nextContext';
@@ -79,7 +79,8 @@ export const wrapPageElement = (
       const path = removePathPrefix(location.pathname, stripTrailingSlash);
 
       const newPath = pathTranslation
-        ? path.replace(originalPath, pathTranslation)
+        ? // TODO: Does replacing also work when the trailing slash is missing?
+          path.replace(originalPath, pathTranslation)
         : `/${requestedLanguage}${path}`;
 
       const newUrl = `${newPath}${location.search}${location.hash}`;

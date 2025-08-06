@@ -4,7 +4,7 @@ import {useContext} from 'react';
 import {navigate as gatsbyNavigate} from 'gatsby';
 import {I18nextContext} from './i18nextContext';
 import type {NavigateOptions} from '@reach/router';
-import {LANGUAGE_KEY} from './types';
+import {LANGUAGE_KEY} from './constants';
 
 declare var __BASE_PATH__: string | undefined;
 declare var __PATH_PREFIX__: string | undefined;
