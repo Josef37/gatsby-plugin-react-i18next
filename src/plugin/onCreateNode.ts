@@ -1,21 +1,16 @@
 import type {CreateNodeArgs, Node} from 'gatsby';
 import type {FileSystemNode, PluginOptions, LocaleNodeInput} from '../types';
-import {DEFAULT_SOURCE_NAME} from '../constants';
+import {DEFAULT_SOURCE_NAME, NODE_TYPE} from '../constants';
 
 export const shouldOnCreateNode = (
   {node}: {node: Node},
   {localeJsonSourceName = DEFAULT_SOURCE_NAME}: PluginOptions
 ) => {
-  if (node.internal.type !== 'File') return false;
-
-  // User explicitly disabled the plugin.
-  if (localeJsonSourceName == null) return false;
-
-  if (localeJsonSourceName !== node.sourceInstanceName) return false;
-
-  if (node.internal.mediaType !== `application/json`) return false;
-
-  return true;
+  return (
+    node.internal.type === 'File' &&
+    node.sourceInstanceName === localeJsonSourceName &&
+    node.internal.mediaType === `application/json`
+  );
 };
 
 export const onCreateNode = async (
@@ -26,15 +21,15 @@ export const onCreateNode = async (
   const {absolutePath, relativeDirectory, name, id} = node;
   const {verbose = true} = pluginOptions;
 
-  let activity;
-  if (verbose) {
-    activity = reporter.activityTimer(
-      `gatsby-plugin-react-i18next: create node: ${relativeDirectory}/${name}`
-    );
-    activity.start();
-  }
+  const activityTimer = verbose
+    ? reporter.activityTimer(
+        `gatsby-plugin-react-i18next: create node: ${relativeDirectory}/${name}`
+      )
+    : null;
+  activityTimer?.start();
 
-  // relativeDirectory name is language name.
+  // Assigning `relativeDirectory` requires that there are no sub-directories
+  // and each directory is named exactly like the language string.
   const language = relativeDirectory;
   const content = await loadNodeContent(node);
 
@@ -43,8 +38,9 @@ export const onCreateNode = async (
   try {
     data = JSON.stringify(JSON.parse(content), undefined, '');
   } catch {
-    const hint = node.absolutePath ? `file ${node.absolutePath}` : `in node ${node.id}`;
-    throw new Error(`Unable to parse JSON: ${hint}`);
+    const error = new Error(`Unable to parse JSON for file ${node.absolutePath}`);
+    activityTimer?.panic(error);
+    throw error;
   }
 
   const {createNode, createParentChildLink} = actions;
@@ -54,9 +50,8 @@ export const onCreateNode = async (
     children: [],
     parent: id,
     internal: {
-      content: data,
-      contentDigest: createContentDigest(data),
-      type: `Locale`
+      type: NODE_TYPE,
+      contentDigest: createContentDigest(data)
     },
     language: language,
     ns: name,
@@ -68,7 +63,5 @@ export const onCreateNode = async (
 
   createParentChildLink({parent: node, child: localeNode});
 
-  if (verbose && activity) {
-    activity.end();
-  }
+  activityTimer?.end();
 };
