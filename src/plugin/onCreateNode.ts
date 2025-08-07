@@ -18,12 +18,13 @@ export const onCreateNode = async (
   pluginOptions: PluginOptions
 ) => {
   const {node, actions, loadNodeContent, createNodeId, createContentDigest, reporter} = args;
-  const {absolutePath, relativeDirectory, name, id} = node;
+  const {absolutePath, relativeDirectory, name: fileName, id: parentNodeId} = node;
+  const {createNode, createParentChildLink} = actions;
   const {verbose = true} = pluginOptions;
 
   const activityTimer = verbose
     ? reporter.activityTimer(
-        `gatsby-plugin-react-i18next: create node: ${relativeDirectory}/${name}`
+        `gatsby-plugin-react-i18next: create node: ${relativeDirectory}/${fileName}`
       )
     : null;
   activityTimer?.start();
@@ -31,30 +32,30 @@ export const onCreateNode = async (
   // Assigning `relativeDirectory` requires that there are no sub-directories
   // and each directory is named exactly like the language string.
   const language = relativeDirectory;
+  const namespace = fileName;
   const content = await loadNodeContent(node);
 
-  // verify & canonicalize indent. (do not care about key order)
+  // Verfiy JSON is valid and remove indent. Key order is not relevant.
   let data: string;
   try {
     data = JSON.stringify(JSON.parse(content), undefined, '');
   } catch {
-    const error = new Error(`Unable to parse JSON for file ${node.absolutePath}`);
+    const error = new Error(`Unable to parse JSON for file ${absolutePath}`);
     activityTimer?.panic(error);
     throw error;
   }
 
-  const {createNode, createParentChildLink} = actions;
-
   const localeNode: LocaleNodeInput = {
-    id: createNodeId(`${id} >>> Locale`),
+    id: createNodeId(`${parentNodeId} >>> Locale`),
     children: [],
-    parent: id,
+    parent: parentNodeId,
     internal: {
       type: NODE_TYPE,
       contentDigest: createContentDigest(data)
     },
-    language: language,
-    ns: name,
+    language,
+    namespace,
+    ns: namespace,
     data,
     fileAbsolutePath: absolutePath
   };
