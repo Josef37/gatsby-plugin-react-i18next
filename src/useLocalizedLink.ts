@@ -23,13 +23,16 @@ interface Result {
  * Use the `language` parameter to override the target language.
  * Defaults to the language of the current page.
  */
-const useLocalizedLink = ({to, language: languageOverride}: Props): Result => {
+const useLocalizedLink = (props: Props): Result => {
   const context = useContext(I18nextContext);
+  return getLocalizedLink(context, props);
+};
 
-  const language = languageOverride ?? context.language;
+export const getLocalizedLink = (context: I18NextContext, props: Props): Result => {
+  const language = props.language ?? context.language;
   const toLocalized =
-    getPathTranslation({context, language, path: to}) ??
-    getPrefixedPath({context, language, path: to});
+    getPathTranslation({context, language, path: props.to}) ??
+    getPrefixedPath({context, language, path: props.to});
 
   return {to: toLocalized, language};
 };
@@ -41,7 +44,7 @@ const getPathTranslation = ({
 }: {
   path: string;
   language: string;
-  context: I18NextContext;
+  context: Pick<I18NextContext, 'pathTranslations'>;
 }) => {
   const urlParts = parseUrl(path);
   if (!urlParts) return undefined;
@@ -66,7 +69,7 @@ const getPrefixedPath = ({
 }: {
   path: string;
   language: string;
-  context: I18NextContext;
+  context: Pick<I18NextContext, 'generateDefaultLanguagePage' | 'defaultLanguage'>;
 }) => {
   const hasPrefix = generateDefaultLanguagePage || language !== defaultLanguage;
   return hasPrefix ? `/${language}${path}` : path;
