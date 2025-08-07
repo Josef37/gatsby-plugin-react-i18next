@@ -322,7 +322,7 @@ const SpanishAboutLink = () => (
 );
 ```
 
-### `useLocalizedUrl`
+### `useLocalizedLink`
 
 Used by the `<Link>` component to translate/localize URLs.
 
