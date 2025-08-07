@@ -46,15 +46,20 @@
     "dev": "babel -w src --out-dir dist --extensions .ts,.tsx",
     "prepare": "rimraf ./dist && npm run build:ts && npm run build:defs",
     "format": "prettier --write 'src/**/*.{js,jsx,json,ts,tsx,md}'",
-    "release": "release-it"
+    "release": "release-it",
+    "test": "jest"
   },
   "devDependencies": {
     "@babel/cli": "^7.28.0",
+    "@babel/preset-typescript": "^7.27.1",
     "@types/browser-lang": "^0.1.2",
+    "@types/jest": "^30.0.0",
     "@types/react": "^18.3.23",
+    "babel-preset-gatsby": "^3.14.0",
     "babel-preset-gatsby-package": "^3.14.0",
     "gatsby": "^5.14.5",
     "i18next": "^25.3.2",
+    "jest": "^30.0.5",
     "prettier": "^3.6.2",
     "pretty-quick": "^4.2.2",
     "react": "^18.3.1",
