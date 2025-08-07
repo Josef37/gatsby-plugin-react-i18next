@@ -1,5 +1,5 @@
 import type {InitOptions} from 'i18next';
-import type {NodeInput} from 'gatsby';
+import type {Node, NodeInput} from 'gatsby';
 
 export type {Resource, ResourceLanguage, ResourceKey} from 'i18next';
 

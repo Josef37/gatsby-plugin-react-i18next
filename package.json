@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "@babel/cli": "^7.28.0",
+    "@types/browser-lang": "^0.1.2",
     "@types/react": "^18.3.23",
     "babel-preset-gatsby-package": "^3.14.0",
     "gatsby": "^5.14.5",

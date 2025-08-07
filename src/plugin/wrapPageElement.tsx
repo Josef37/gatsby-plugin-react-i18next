@@ -1,6 +1,5 @@
 import React from 'react';
 import {withPrefix, navigate, type WrapPageElementBrowserArgs} from 'gatsby';
-// @ts-ignore
 import browserLang from 'browser-lang';
 import {
   type I18NextContext,

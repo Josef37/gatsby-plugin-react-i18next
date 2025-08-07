@@ -19,7 +19,6 @@ export const shouldOnCreateNode = (
 };
 
 export const onCreateNode = async (
-  // @ts-ignore
   args: CreateNodeArgs<FileSystemNode>,
   pluginOptions: PluginOptions
 ) => {
@@ -67,8 +66,6 @@ export const onCreateNode = async (
 
   createNode(localeNode);
 
-  // @ts-ignore
-  // staled issue: https://github.com/gatsbyjs/gatsby/issues/19993
   createParentChildLink({parent: node, child: localeNode});
 
   if (verbose && activity) {
