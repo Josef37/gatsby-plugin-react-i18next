@@ -17,16 +17,16 @@ export type PluginOptions = {
   languages: Language[];
   defaultLanguage: Language;
   generateDefaultLanguagePage: boolean;
-  redirect?: boolean;
+  redirect: boolean;
   siteUrl?: string;
   i18nextOptions: InitOptions;
-  pages?: Array<PageOptions>;
-  pathTranslations?: Record<Language, Record<Path, Path>>;
-  localeJsonSourceName?: string;
-  localeJsonNodeName?: string;
+  pages: Array<PageOptions>;
+  pathTranslations: Record<Language, Record<Path, Path>>;
+  localeJsonSourceName: string;
+  localeJsonNodeName: string;
   fallbackLanguage?: Language;
-  trailingSlash?: 'always' | 'never' | 'ignore';
-  verbose?: boolean;
+  trailingSlash: 'always' | 'never' | 'ignore';
+  verbose: boolean;
 };
 
 export type I18NextContext = {

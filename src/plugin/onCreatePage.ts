@@ -1,72 +1,31 @@
 import type {CreatePageArgs, Page} from 'gatsby';
 import {match} from 'path-to-regexp';
-import type {PageContext, PageOptions, PluginOptions} from '../types';
+import type {PageContext, PluginOptions} from '../types';
 
 export const onCreatePage = async (
-  {page, actions}: CreatePageArgs<PageContext>,
-  pluginOptions: PluginOptions
+  {page, actions}: CreatePageArgs,
+  pluginOptions: PluginOptions,
 ) => {
-  // Exit if the page has already been processed.
-  if (typeof page.context?.i18n === 'object') {
+  const alreadyProcessed = typeof page.context?.i18n !== 'undefined';
+  if (alreadyProcessed) {
     return;
   }
 
   const {createPage, deletePage} = actions;
-  const {
-    defaultLanguage = 'en',
-    generateDefaultLanguagePage = false,
-    languages = ['en'],
-    pages = [],
-    pathTranslations = {}
-  } = pluginOptions;
-
-  type GeneratePageParams = {
-    language: string;
-    path?: string;
-    originalPath?: string;
-    routed?: boolean;
-    matchPath?: string;
-    pageOptions?: PageOptions;
-  };
-  const generatePage = async ({
-    language,
-    path = page.path,
-    originalPath = page.path,
-    routed = false,
-    matchPath = page.matchPath,
-    pageOptions
-  }: GeneratePageParams): Promise<Page<PageContext>> => {
-    return {
-      ...page,
-      matchPath,
-      path,
-      context: {
-        ...page.context,
-        language,
-        i18n: {
-          language,
-          languages: pageOptions?.languages || languages,
-          defaultLanguage,
-          generateDefaultLanguagePage,
-          routed,
-          originalPath,
-          path,
-          pathTranslations
-        }
-      }
-    };
-  };
+  const {defaultLanguage, generateDefaultLanguagePage, languages, pages, pathTranslations} =
+    pluginOptions;
 
   const pageOptions = pages.find((opt) => match(opt.matchPath)(page.path));
 
-  let newPage;
+  const newPages: NewPageParams[] = [];
+
   let alternativeLanguages = generateDefaultLanguagePage
     ? languages
     : languages.filter((lng) => lng !== defaultLanguage);
 
   if (pageOptions?.excludeLanguages) {
     alternativeLanguages = alternativeLanguages.filter(
-      (lng) => !pageOptions?.excludeLanguages?.includes(lng)
+      (lng) => !pageOptions?.excludeLanguages?.includes(lng),
     );
   }
 
@@ -78,49 +37,99 @@ export const onCreatePage = async (
 
   if (pageOptions?.getLanguageFromPath) {
     const result = match<{lang: string}>(pageOptions.matchPath)(page.path);
+    // We already matched above...
     if (!result) return;
-    const language = languages.find((lng) => lng === result.params.lang) || defaultLanguage;
+    // When we don't find a matching language, better exit...
+    const language = languages.find((lng) => lng === result.params.lang) ?? defaultLanguage;
     // TODO: This breaks when the language path is not the first starting with `/language`.
+    // But otherwise we'd have no idea how to route stuff...
     const originalPath = page.path.replace(`/${language}`, '');
-    const routed = Boolean(result.params.lang);
-    newPage = await generatePage({language, originalPath, routed, pageOptions});
-    if (routed || !pageOptions.excludeLanguages) {
+    // The original path is considered `routed`?
+    const gotLanuageFromPath = Boolean(result.params.lang);
+    const routed = gotLanuageFromPath;
+    // Create a page with the same path, but give it `language` and `originalPath`
+    newPages.push({language, originalPath, routed, languages: pageOptions?.languages});
+    // We matched `:lang` (which was our whole purpose here)
+    // and we don't exclude other languages.
+    // So we consider this page to be the only one. Why?!
+    // What we want: If we didn't get the language from the URL, we could say that this is a normal page
+    // Otherwise just create the other languages like you meant.
+    if (gotLanuageFromPath || !pageOptions.excludeLanguages) {
       alternativeLanguages = [];
     }
   } else {
-    newPage = await generatePage({language: defaultLanguage, pageOptions});
+    newPages.push({language: defaultLanguage, languages: pageOptions?.languages});
+  }
+
+  for (const altLanguage of alternativeLanguages) {
+    let path = `/${altLanguage}${page.path}`;
+    let matchPath = page.matchPath ? `/${altLanguage}${page.matchPath}` : undefined;
+
+    const pathTranslation = pathTranslations?.[altLanguage]?.[page.path];
+    if (pathTranslation) {
+      path = pathTranslation;
+      matchPath = page.matchPath?.replace(page.path, pathTranslation);
+    }
+
+    const is404Page = new RegExp('^/404/?$').test(page.path);
+    if (is404Page) {
+      matchPath = `/${altLanguage}/*`;
+    }
+
+    const newLocalePage: NewPageParams = {
+      language: altLanguage,
+      path,
+      matchPath,
+      routed: true,
+      languages: pageOptions?.languages,
+    };
+
+    newPages.push(newLocalePage);
   }
 
   try {
     deletePage(page);
   } catch {}
-  createPage(newPage);
 
-  await Promise.all(
-    alternativeLanguages.map(async (lng) => {
-      let path = `/${lng}${page.path}`;
-      let matchPath = page.matchPath ? `/${lng}${page.matchPath}` : undefined;
-
-      const pathTranslation = pathTranslations?.[lng]?.[page.path];
-      if (pathTranslation) {
-        path = pathTranslation;
-        matchPath = page.matchPath?.replace(page.path, pathTranslation);
-      }
-
-      const localePage = await generatePage({
-        language: lng,
-        path,
-        matchPath,
-        routed: true,
-        pageOptions
-      });
-
-      const is404Page = new RegExp('/404/?$').test(localePage.path);
-      if (is404Page) {
-        localePage.matchPath = `/${lng}/*`;
-      }
-
-      createPage(localePage);
-    })
-  );
+  for (const newPage of newPages) {
+    createPage(getNewPageFromOld(page, pluginOptions)(newPage));
+  }
 };
+
+type NewPageParams = {
+  language: string;
+  path?: string;
+  originalPath?: string;
+  routed?: boolean;
+  matchPath?: string;
+  languages?: string[];
+};
+
+const getNewPageFromOld =
+  (oldPage: Page, pluginOptions: PluginOptions) =>
+  ({
+    language,
+    path = oldPage.path,
+    originalPath = oldPage.path,
+    routed = false,
+    matchPath = oldPage.matchPath,
+    languages,
+  }: NewPageParams): Page<PageContext> => ({
+    ...oldPage,
+    path,
+    matchPath,
+    context: {
+      ...oldPage.context,
+      language,
+      i18n: {
+        path,
+        originalPath,
+        routed,
+        language,
+        languages: languages ?? pluginOptions.languages,
+        defaultLanguage: pluginOptions.defaultLanguage,
+        generateDefaultLanguagePage: pluginOptions.generateDefaultLanguagePage,
+        pathTranslations: pluginOptions.pathTranslations,
+      },
+    },
+  });

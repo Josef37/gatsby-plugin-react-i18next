@@ -7,7 +7,7 @@ import {
   type PluginOptions,
   type LocaleNode,
   type Resource,
-  type ResourceKey
+  type ResourceKey,
 } from '../types';
 import {LANGUAGE_STORAGE_KEY} from '../constants';
 import i18next, {type i18n as I18n} from 'i18next';
@@ -41,15 +41,15 @@ const removePathPrefix = (pathname: string, stripTrailingSlash: boolean) => {
 export const wrapPageElement = (
   {element, props}: WrapPageElementBrowserArgs<any, PageContext>,
   {
-    i18nextOptions = {},
-    redirect = true,
-    generateDefaultLanguagePage = false,
+    i18nextOptions,
+    redirect,
+    generateDefaultLanguagePage,
     siteUrl,
-    localeJsonNodeName = 'locales',
+    localeJsonNodeName,
     fallbackLanguage,
     trailingSlash,
-    pathTranslations = {}
-  }: PluginOptions
+    pathTranslations,
+  }: PluginOptions,
 ) => {
   if (!props) return;
   const {data, pageContext, location} = props;
@@ -62,7 +62,7 @@ export const wrapPageElement = (
       window.localStorage.getItem(LANGUAGE_STORAGE_KEY) ||
       browserLang({
         languages,
-        fallback: fallbackLanguage || language
+        fallback: fallbackLanguage || language,
       });
 
     if (!languages.includes(requestedLanguage)) {
@@ -109,7 +109,7 @@ export const wrapPageElement = (
           }
         }
       \`;
-      `
+      `,
     );
   }
 
@@ -144,8 +144,8 @@ export const wrapPageElement = (
     fallbackNS,
     react: {
       ...i18nextOptions.react,
-      useSuspense: false
-    }
+      useSuspense: false,
+    },
   });
 
   if (i18n.language !== language) {
@@ -161,7 +161,7 @@ export const wrapPageElement = (
     generateDefaultLanguagePage,
     siteUrl,
     path,
-    pathTranslations
+    pathTranslations,
   };
 
   return withI18next(i18n, context)(element);

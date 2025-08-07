@@ -1,11 +1,8 @@
 import type {CreateNodeArgs, Node} from 'gatsby';
 import type {FileSystemNode, PluginOptions, LocaleNodeInput} from '../types';
-import {DEFAULT_SOURCE_NAME, NODE_TYPE} from '../constants';
+import {NODE_TYPE} from '../constants';
 
-export const shouldOnCreateNode = (
-  {node}: {node: Node},
-  {localeJsonSourceName = DEFAULT_SOURCE_NAME}: PluginOptions
-) => {
+export const shouldOnCreateNode = ({node}: {node: Node}, {localeJsonSourceName}: PluginOptions) => {
   return (
     node.internal.type === 'File' &&
     node.sourceInstanceName === localeJsonSourceName &&
@@ -15,16 +12,16 @@ export const shouldOnCreateNode = (
 
 export const onCreateNode = async (
   args: CreateNodeArgs<FileSystemNode>,
-  pluginOptions: PluginOptions
+  pluginOptions: PluginOptions,
 ) => {
   const {node, actions, loadNodeContent, createNodeId, createContentDigest, reporter} = args;
   const {absolutePath, relativeDirectory, name: fileName, id: parentNodeId} = node;
   const {createNode, createParentChildLink} = actions;
-  const {verbose = true} = pluginOptions;
+  const {verbose} = pluginOptions;
 
   const activityTimer = verbose
     ? reporter.activityTimer(
-        `gatsby-plugin-react-i18next: create node: ${relativeDirectory}/${fileName}`
+        `gatsby-plugin-react-i18next: create node: ${relativeDirectory}/${fileName}`,
       )
     : null;
   activityTimer?.start();
@@ -51,13 +48,13 @@ export const onCreateNode = async (
     parent: parentNodeId,
     internal: {
       type: NODE_TYPE,
-      contentDigest: createContentDigest(data)
+      contentDigest: createContentDigest(data),
     },
     language,
     namespace,
     ns: namespace,
     data,
-    fileAbsolutePath: absolutePath
+    fileAbsolutePath: absolutePath,
   };
 
   createNode(localeNode);
