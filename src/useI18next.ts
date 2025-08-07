@@ -4,7 +4,7 @@ import {useContext} from 'react';
 import {navigate as gatsbyNavigate} from 'gatsby';
 import {I18nextContext} from './i18nextContext';
 import type {NavigateOptions} from '@reach/router';
-import {LANGUAGE_KEY} from './constants';
+import {LANGUAGE_STORAGE_KEY} from './constants';
 
 declare var __BASE_PATH__: string | undefined;
 declare var __PATH_PREFIX__: string | undefined;
@@ -43,7 +43,7 @@ export const useI18next = (ns?: Namespace, options?: UseTranslationOptions<strin
     const languagePath = getLanguagePath(language);
     const pathname = to || removeLocalePart(removePrefix(window.location.pathname));
     const link = `${languagePath}${pathname}${window.location.search}`;
-    localStorage.setItem(LANGUAGE_KEY, language);
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
     return gatsbyNavigate(link, options);
   };
 

@@ -6,7 +6,7 @@ export const onCreatePage = async (
   {page, actions}: CreatePageArgs<PageContext>,
   pluginOptions: PluginOptions
 ) => {
-  //Exit if the page has already been processed.
+  // Exit if the page has already been processed.
   if (typeof page.context?.i18n === 'object') {
     return;
   }

@@ -9,7 +9,7 @@ import {
   type Resource,
   type ResourceKey
 } from '../types';
-import {LANGUAGE_KEY} from '../constants';
+import {LANGUAGE_STORAGE_KEY} from '../constants';
 import i18next, {type i18n as I18n} from 'i18next';
 import {I18nextProvider} from 'react-i18next';
 import {I18nextContext} from '../i18nextContext';
@@ -59,7 +59,7 @@ export const wrapPageElement = (
   const isBrowser = typeof window !== 'undefined';
   if (shouldRedirect && isBrowser) {
     let requestedLanguage =
-      window.localStorage.getItem(LANGUAGE_KEY) ||
+      window.localStorage.getItem(LANGUAGE_STORAGE_KEY) ||
       browserLang({
         languages,
         fallback: fallbackLanguage || language
@@ -69,7 +69,7 @@ export const wrapPageElement = (
       requestedLanguage = language;
     }
 
-    window.localStorage.setItem(LANGUAGE_KEY, requestedLanguage);
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, requestedLanguage);
 
     if (requestedLanguage !== defaultLanguage) {
       const pathTranslation = pathTranslations?.[requestedLanguage]?.[originalPath];

@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {Link as GatsbyLink, type GatsbyLinkProps} from 'gatsby';
-import {LANGUAGE_KEY} from './constants';
+import {LANGUAGE_STORAGE_KEY} from './constants';
 import useLocalizedLink from './useLocalizedLink';
 
 type Props = GatsbyLinkProps<any> & {language?: string};
@@ -12,7 +12,7 @@ export const Link = React.forwardRef<HTMLAnchorElement, Props>(
     const handleClick = useCallback(
       (event: React.MouseEvent<HTMLAnchorElement>) => {
         if (language) {
-          localStorage.setItem(LANGUAGE_KEY, language);
+          localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
         }
         if (onClick) {
           onClick(event);

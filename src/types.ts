@@ -47,6 +47,15 @@ export type PageContext = {
   i18n: I18NextContext;
 };
 
+export type LocaleNodeInput = NodeInput & {
+  language: Language;
+  ns: string;
+  data: string;
+  fileAbsolutePath: string;
+};
+
+export type LocaleNode = Node & LocaleNodeInput;
+
 // Taken from https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-source-filesystem/index.d.ts
 // No way to refer it without directly depending on gatsby-source-filesystem.
 export interface FileSystemNode extends Node {
@@ -71,14 +80,6 @@ export interface FileSystemNode extends Node {
   // stats
   atime: Date;
   atimeMs: number;
-  /**
-   * @deprecated Use `birthTime` instead
-   */
-  birthtime: Date;
-  /**
-   * @deprecated Use `birthTime` instead
-   */
-  birthtimeMs: number;
   ctime: Date;
   ctimeMs: number;
   gid: number;
@@ -87,19 +88,4 @@ export interface FileSystemNode extends Node {
   mtimeMs: number;
   size: number;
   uid: number;
-}
-
-export interface LocaleNodeInput extends NodeInput {
-  language: Language;
-  ns: string;
-  data: string;
-  fileAbsolutePath: string;
-}
-
-export interface LocaleNode extends LocaleNodeInput {
-  parent: string;
-  children: string[];
-  internal: NodeInput['internal'] & {
-    owner: string;
-  };
 }
