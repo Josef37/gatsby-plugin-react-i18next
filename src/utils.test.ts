@@ -1,4 +1,7 @@
-import {pick, parseUrl, toggleTrailingSlash} from './utils';
+import * as gatsby from 'gatsby';
+import {pick, parseUrl, toggleTrailingSlash, removePathPrefix, stripTrailingSlash} from './utils';
+
+jest.mock('gatsby');
 
 describe('pick', () => {
   it('should pick specified properties from an object', () => {
@@ -58,5 +61,50 @@ describe('toggleTrailingSlash', () => {
   it('should handle root path correctly', () => {
     expect(toggleTrailingSlash('/')).toBe('');
     expect(toggleTrailingSlash('')).toBe('/');
+  });
+});
+
+describe('stripTrailingSlash', () => {
+  it('should remove trailing slash', () => {
+    expect(stripTrailingSlash('/path/')).toBe('/path');
+  });
+
+  it('should do nothing when there is no trailing slash', () => {
+    expect(stripTrailingSlash('/path')).toBe('/path');
+  });
+});
+
+describe('removePathPrefix', () => {
+  const mockPrefix = (prefix: string) => jest.mocked(gatsby.withPrefix).mockReturnValue(prefix);
+
+  it('should remove the path prefix', () => {
+    mockPrefix('/custom/prefix');
+    expect(removePathPrefix('/custom/prefix/path/')).toBe('/path/');
+  });
+
+  it('should do nothing when there is no prefix', () => {
+    mockPrefix('/');
+    expect(removePathPrefix('/nested/path/')).toBe('/nested/path/');
+  });
+
+  it('should work with mixed trailing slashes', () => {
+    mockPrefix('/with/slash/');
+    expect(removePathPrefix('/with/slash/path/')).toBe('/path/');
+
+    mockPrefix('/without/slash');
+    expect(removePathPrefix('/without/slash/path/')).toBe('/path/');
+  });
+
+  it('should work for root', () => {
+    mockPrefix('/with/slash/');
+    expect(removePathPrefix('/with/slash/')).toBe('/');
+
+    mockPrefix('/with/slash/');
+    expect(removePathPrefix('/with/slash')).toBe('');
+  });
+
+  it('should strip trailing slash when configured', () => {
+    mockPrefix('/with/slash/');
+    expect(removePathPrefix('/with/slash/path/', true)).toBe('/path');
   });
 });

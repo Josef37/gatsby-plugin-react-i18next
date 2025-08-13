@@ -127,9 +127,6 @@ const getNewPageFromOld =
         routed,
         language,
         languages: languages ?? pluginOptions.languages,
-        defaultLanguage: pluginOptions.defaultLanguage,
-        generateDefaultLanguagePage: pluginOptions.generateDefaultLanguagePage,
-        pathTranslations: pluginOptions.pathTranslations,
       },
     },
   });

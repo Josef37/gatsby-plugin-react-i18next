@@ -11,6 +11,11 @@ interface Result {
   to: string;
   language: string;
 }
+type Context = Pick<
+  I18NextContext,
+  'pathTranslations' | 'generateDefaultLanguagePage' | 'defaultLanguage'
+> &
+  Partial<Pick<I18NextContext, 'language'>>;
 
 /**
  * This hook is intended _only_ for links to pages handled by Gatsby.
@@ -28,8 +33,8 @@ const useLocalizedLink = (props: Props): Result => {
   return getLocalizedLink(context, props);
 };
 
-export const getLocalizedLink = (context: I18NextContext, props: Props): Result => {
-  const language = props.language ?? context.language;
+export const getLocalizedLink = (context: Context, props: Props): Result => {
+  const language = props.language ?? context.language ?? context.defaultLanguage;
   const toLocalized =
     getPathTranslation({context, language, path: props.to}) ??
     getPrefixedPath({context, language, path: props.to});
@@ -44,7 +49,7 @@ const getPathTranslation = ({
 }: {
   path: string;
   language: string;
-  context: Pick<I18NextContext, 'pathTranslations'>;
+  context: Pick<Context, 'pathTranslations'>;
 }) => {
   const urlParts = parseUrl(path);
   if (!urlParts) return undefined;
@@ -69,7 +74,7 @@ const getPrefixedPath = ({
 }: {
   path: string;
   language: string;
-  context: Pick<I18NextContext, 'generateDefaultLanguagePage' | 'defaultLanguage'>;
+  context: Pick<Context, 'generateDefaultLanguagePage' | 'defaultLanguage'>;
 }) => {
   const hasPrefix = generateDefaultLanguagePage || language !== defaultLanguage;
   return hasPrefix ? `/${language}${path}` : path;

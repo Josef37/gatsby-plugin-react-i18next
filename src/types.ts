@@ -6,13 +6,6 @@ export type {Resource, ResourceLanguage, ResourceKey} from 'i18next';
 type Language = string;
 type Path = string;
 
-export type PageOptions = {
-  matchPath: string;
-  getLanguageFromPath?: boolean;
-  excludeLanguages?: Language[];
-  languages?: Language[];
-};
-
 export type PluginOptions = {
   languages: Language[];
   defaultLanguage: Language;
@@ -29,23 +22,35 @@ export type PluginOptions = {
   verbose: boolean;
 };
 
-export type I18NextContext = {
-  language: Language;
-  routed: boolean;
-  languages: Language[];
-  defaultLanguage: Language;
-  generateDefaultLanguagePage: boolean;
-  originalPath: Path;
-  path: Path;
-  siteUrl?: string;
-  pathTranslations: PluginOptions['pathTranslations'];
+export type PageOptions = {
+  matchPath: string;
+  getLanguageFromPath?: boolean;
+  excludeLanguages?: Language[];
+  languages?: Language[];
 };
 
 export type PageContext = {
   path?: Path;
   language: Language;
-  i18n: I18NextContext;
+  i18n: I18NextPageContext;
 };
+
+type I18NextPageContext = {
+  language: Language;
+  languages: Language[];
+  routed: boolean;
+  path: Path;
+  originalPath: Path;
+};
+
+type I18NextPluginContext = {
+  siteUrl?: string;
+  defaultLanguage: Language;
+  generateDefaultLanguagePage: boolean;
+  pathTranslations: PluginOptions['pathTranslations'];
+};
+
+export type I18NextContext = I18NextPageContext & I18NextPluginContext;
 
 export type LocaleNodeInput = NodeInput & {
   language: Language;

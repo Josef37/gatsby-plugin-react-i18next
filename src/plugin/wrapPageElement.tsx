@@ -1,11 +1,10 @@
-import React from 'react';
-import {withPrefix, navigate, type WrapPageElementBrowserArgs} from 'gatsby';
+import React, {useEffect} from 'react';
+import {navigate, type WrapPageElementBrowserArgs, type PageProps} from 'gatsby';
 import browserLang from 'browser-lang';
 import {
   type I18NextContext,
   type PageContext,
   type PluginOptions,
-  type LocaleNode,
   type Resource,
   type ResourceKey,
 } from '../types';
@@ -14,6 +13,10 @@ import i18next, {type i18n as I18n} from 'i18next';
 import {I18nextProvider} from 'react-i18next';
 import {I18nextContext} from '../i18nextContext';
 import outdent from 'outdent';
+import {getLocalizedLink} from '../useLocalizedLink';
+import {pick, removePathPrefix} from '../utils';
+
+type DataType = Record<string, unknown>;
 
 const withI18next = (i18n: I18n, context: I18NextContext) => (children: any) => {
   return (
@@ -23,77 +26,193 @@ const withI18next = (i18n: I18n, context: I18NextContext) => (children: any) => 
   );
 };
 
-const removePathPrefix = (pathname: string, stripTrailingSlash: boolean) => {
-  const pathPrefix = withPrefix('/');
-  let result = pathname;
+export const wrapPageElement = (
+  {element, props}: WrapPageElementBrowserArgs<DataType, PageContext>,
+  pluginOptions: PluginOptions,
+): React.ReactElement => {
+  const {language} = props.pageContext;
+  const {i18nextOptions, defaultLanguage} = pluginOptions;
 
-  if (pathname.startsWith(pathPrefix)) {
-    result = pathname.replace(pathPrefix, '/');
-  }
+  useEffect(() => {
+    // TODO: Only redirect on initial visit or every new page load?
+    redirectToUserLocale(props, pluginOptions);
+  }, []);
 
-  if (stripTrailingSlash && result.endsWith('/')) {
-    return result.slice(0, -1);
-  }
+  const {resources, defaultNamespace, fallbackNamespaces} = getTranslationResources(
+    props,
+    pluginOptions,
+  );
 
-  return result;
+  // We're creating a new instance for each page, because the translation resources
+  // are queried for every page and can differ.
+  const i18n = i18next.createInstance({
+    ...i18nextOptions,
+    react: {
+      ...i18nextOptions.react,
+      useSuspense: false,
+    },
+  });
+
+  i18n.init({
+    resources,
+    lng: language,
+    fallbackLng: defaultLanguage,
+    defaultNS: defaultNamespace,
+    fallbackNS: fallbackNamespaces,
+  });
+
+  const context = {
+    ...pick(
+      pluginOptions,
+      'defaultLanguage',
+      'generateDefaultLanguagePage',
+      'pathTranslations',
+      'siteUrl',
+    ),
+    ...props.pageContext.i18n,
+  };
+
+  return withI18next(i18n, context)(element);
 };
 
-export const wrapPageElement = (
-  {element, props}: WrapPageElementBrowserArgs<any, PageContext>,
-  {
-    i18nextOptions,
+const redirectToUserLocale = (
+  props: PageProps<DataType, PageContext>,
+  pluginOptions: PluginOptions,
+): string | undefined => {
+  const {pageContext, location} = props;
+  const {routed, language, languages} = pageContext.i18n;
+  const {
     redirect,
-    generateDefaultLanguagePage,
-    siteUrl,
-    localeJsonNodeName,
     fallbackLanguage,
     trailingSlash,
+    defaultLanguage,
+    generateDefaultLanguagePage,
     pathTranslations,
-  }: PluginOptions,
-) => {
-  if (!props) return;
-  const {data, pageContext, location} = props;
-  const {routed, language, languages, originalPath, defaultLanguage, path} = pageContext.i18n;
+  } = pluginOptions;
+
   const shouldRedirect = redirect && !routed;
-
   const isBrowser = typeof window !== 'undefined';
-  if (shouldRedirect && isBrowser) {
-    let requestedLanguage =
-      window.localStorage.getItem(LANGUAGE_STORAGE_KEY) ||
-      browserLang({
-        languages,
-        fallback: fallbackLanguage || language,
-      });
 
-    if (!languages.includes(requestedLanguage)) {
-      requestedLanguage = language;
-    }
-
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, requestedLanguage);
-
-    if (requestedLanguage !== defaultLanguage) {
-      const pathTranslation = pathTranslations?.[requestedLanguage]?.[originalPath];
-
-      const stripTrailingSlash = trailingSlash === 'never';
-      const path = removePathPrefix(location.pathname, stripTrailingSlash);
-
-      const newPath = pathTranslation
-        ? // TODO: Does replacing also work when the trailing slash is missing?
-          path.replace(originalPath, pathTranslation)
-        : `/${requestedLanguage}${path}`;
-
-      const newUrl = `${newPath}${location.search}${location.hash}`;
-      navigate(newUrl, {replace: true});
-      return null;
-    }
+  if (!shouldRedirect || !isBrowser) {
+    return;
   }
 
-  const localeNodes: Array<{node: LocaleNode}> = data?.[localeJsonNodeName]?.edges || [];
+  let requestedLanguage =
+    window.localStorage.getItem(LANGUAGE_STORAGE_KEY) ||
+    browserLang({
+      languages,
+      fallback: fallbackLanguage ?? language,
+    });
+
+  if (!languages.includes(requestedLanguage)) {
+    requestedLanguage = language;
+  }
+
+  // TODO: Don't save the user language when we can't serve it?
+  window.localStorage.setItem(LANGUAGE_STORAGE_KEY, requestedLanguage);
+
+  // TODO: Also redirect when generating default language page.
+  if (requestedLanguage === defaultLanguage) {
+    return;
+  }
+
+  const shouldStripTrailingSlash = trailingSlash === 'never';
+  const path = removePathPrefix(location.pathname, shouldStripTrailingSlash);
+
+  const {to: newPath} = getLocalizedLink(
+    {defaultLanguage, generateDefaultLanguagePage, pathTranslations},
+    {to: path, language: requestedLanguage},
+  );
+
+  navigate(newPath, {replace: true});
+};
+
+const getTranslationResources = (
+  props: PageProps<DataType, PageContext>,
+  pluginOptions: PluginOptions,
+) => {
+  const {data, pageContext} = props;
+  const {localeJsonNodeName, languages, i18nextOptions} = pluginOptions;
+
+  const resources: Resource = {};
+
+  const defaultNamespace =
+    typeof i18nextOptions.defaultNS === 'string' ? i18nextOptions.defaultNS : 'translation';
+
+  const localeNodesRaw = getLocaleNodesFromData(data, localeJsonNodeName);
+  if (!validateLocaleNodes(localeNodesRaw)) {
+    return {resources, defaultNamespace, fallbackNamespaces: []};
+  }
+  const localeNodes = normalizeLocaleNodes(localeNodesRaw, defaultNamespace);
 
   if (languages.length > 1 && localeNodes.length === 0 && process.env.NODE_ENV === 'development') {
-    console.error(
-      outdent`
-      No translations were found in "${localeJsonNodeName}" key for "${originalPath}". 
+    showQueryHint(pageContext, pluginOptions);
+  }
+
+  const namespaces = localeNodes.map((node) => node.namespace);
+  // We want to set the default namespace and use other namespaces as fallback.
+  // This way you dont need to specify namespaces in components.
+  const fallbackNamespaces = namespaces.filter((namespace) => namespace !== defaultNamespace);
+
+  for (const {data, language, namespace} of localeNodes) {
+    const parsedData: ResourceKey = typeof data === 'object' ? data : JSON.parse(data);
+
+    if (!(language in resources)) resources[language] = {};
+
+    resources[language][namespace] = parsedData;
+  }
+
+  return {
+    resources,
+    defaultNamespace,
+    fallbackNamespaces,
+  };
+};
+
+const getLocaleNodesFromData = (data: DataType, localeJsonNodeName: string) => {
+  const queryData = data?.[localeJsonNodeName];
+
+  if (!queryData || typeof queryData !== 'object') {
+    return [];
+  } else if ('edges' in queryData && Array.isArray(queryData.edges)) {
+    return queryData.edges.map((edge) => edge?.node);
+  } else if ('nodes' in queryData) {
+    return queryData.nodes;
+  }
+
+  return [];
+};
+
+type Node = {
+  language: string;
+  data: string;
+  ns?: string;
+  namespace?: string;
+};
+const validateLocaleNodes = (nodes: unknown): nodes is Array<Node> => {
+  return (
+    Array.isArray(nodes) &&
+    nodes.every(
+      (node) =>
+        typeof node?.language === 'string' &&
+        typeof node?.data === 'string' &&
+        (typeof node?.namespace === 'string' || typeof node?.ns === 'string'),
+    )
+  );
+};
+
+const normalizeLocaleNodes = (nodes: Array<Node>, defaultNamespace: string) => {
+  return nodes.map((node) => ({
+    language: node.language,
+    data: node.data,
+    namespace: node.namespace ?? node.ns ?? defaultNamespace,
+  }));
+};
+
+const showQueryHint = (pageContext: PageContext, {localeJsonNodeName}: PluginOptions) => {
+  console.error(
+    outdent`
+      No translations were found in "${localeJsonNodeName}" key for "${pageContext.i18n.originalPath}". 
       You need to add a graphql query to every page like this:
       
       export const query = graphql\`
@@ -101,7 +220,7 @@ export const wrapPageElement = (
           ${localeJsonNodeName}: allLocale(language: {eq: $language}) {
             edges {
               node {
-                ns
+                namespace
                 data
                 language
               }
@@ -110,59 +229,13 @@ export const wrapPageElement = (
         }
       \`;
       `,
-    );
-  }
+  );
+};
 
-  const namespaces = localeNodes.map(({node}) => node.ns);
-
-  // We want to set default namespace to a page namespace if it exists
-  // and use other namespaces as fallback
-  // this way you dont need to specify namespaces in pages
-  let defaultNS = i18nextOptions.defaultNS?.toString() || 'translation';
-  defaultNS = namespaces.find((ns) => ns !== defaultNS) || defaultNS;
-  const fallbackNS = namespaces.filter((ns) => ns !== defaultNS);
-
-  const resources: Resource = localeNodes.reduce<Resource>((res: Resource, {node}) => {
-    const parsedData: ResourceKey =
-      typeof node.data === 'object' ? node.data : JSON.parse(node.data);
-
-    if (!(node.language in res)) res[node.language] = {};
-
-    res[node.language][node.ns || defaultNS] = parsedData;
-
-    return res;
-  }, {});
-
-  const i18n = i18next.createInstance();
-
-  i18n.init({
-    ...i18nextOptions,
-    resources,
-    lng: language,
-    fallbackLng: defaultLanguage,
-    defaultNS,
-    fallbackNS,
-    react: {
-      ...i18nextOptions.react,
-      useSuspense: false,
-    },
-  });
-
-  if (i18n.language !== language) {
-    i18n.changeLanguage(language);
-  }
-
-  const context = {
-    routed,
-    language,
-    languages,
-    originalPath,
-    defaultLanguage,
-    generateDefaultLanguagePage,
-    siteUrl,
-    path,
-    pathTranslations,
-  };
-
-  return withI18next(i18n, context)(element);
+export const forTesting = {
+  redirectToUserLocale,
+  getTranslationResources,
+  getLocaleNodesFromData,
+  validateLocaleNodes,
+  normalizeLocaleNodes,
 };
