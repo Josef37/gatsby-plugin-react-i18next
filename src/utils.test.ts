@@ -20,7 +20,7 @@ describe('parseUrl', () => {
     expect(parseUrl('/path?query=value#hash')).toEqual({
       pathname: '/path',
       search: '?query=value',
-      hash: '#hash'
+      hash: '#hash',
     });
   });
 
@@ -28,7 +28,7 @@ describe('parseUrl', () => {
     expect(parseUrl('/simple/path')).toEqual({
       pathname: '/simple/path',
       search: '',
-      hash: ''
+      hash: '',
     });
   });
 
@@ -36,7 +36,7 @@ describe('parseUrl', () => {
     expect(parseUrl('')).toEqual({
       pathname: '/',
       search: '',
-      hash: ''
+      hash: '',
     });
   });
 
@@ -44,7 +44,7 @@ describe('parseUrl', () => {
     expect(parseUrl('https://example.com/path?query=value#hash')).toEqual({
       pathname: '/path',
       search: '?query=value',
-      hash: '#hash'
+      hash: '#hash',
     });
   });
 });

@@ -18,7 +18,7 @@ export const useI18next = (ns?: Namespace, options?: UseTranslationOptions<strin
     t,
     ready,
     navigate: useCallback(navigate(context), [context]),
-    changeLanguage: useCallback(changeLanguage(context), [context])
+    changeLanguage: useCallback(changeLanguage(context), [context]),
   };
 };
 

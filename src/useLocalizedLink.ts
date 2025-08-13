@@ -45,7 +45,7 @@ export const getLocalizedLink = (context: Context, props: Props): Result => {
 const getPathTranslation = ({
   path,
   language,
-  context: {pathTranslations}
+  context: {pathTranslations},
 }: {
   path: string;
   language: string;
@@ -70,7 +70,7 @@ const getPathTranslation = ({
 const getPrefixedPath = ({
   path,
   language,
-  context: {generateDefaultLanguagePage, defaultLanguage}
+  context: {generateDefaultLanguagePage, defaultLanguage},
 }: {
   path: string;
   language: string;

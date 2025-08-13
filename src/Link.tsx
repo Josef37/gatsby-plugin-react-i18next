@@ -18,7 +18,7 @@ export const Link = React.forwardRef<HTMLAnchorElement, Props>(
           onClick(event);
         }
       },
-      [language, onClick]
+      [language, onClick],
     );
 
     return (
@@ -31,5 +31,5 @@ export const Link = React.forwardRef<HTMLAnchorElement, Props>(
         onClick={handleClick}
       />
     );
-  }
+  },
 );

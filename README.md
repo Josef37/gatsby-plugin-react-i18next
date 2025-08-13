@@ -63,8 +63,8 @@ plugins: [
     resolve: `gatsby-source-filesystem`,
     options: {
       path: `${__dirname}/locales`,
-      name: `locale`
-    }
+      name: `locale`,
+    },
   },
   {
     resolve: `gatsby-plugin-react-i18next`,
@@ -78,27 +78,27 @@ plugins: [
       // you can pass any i18next options
       i18nextOptions: {
         interpolation: {
-          escapeValue: false // not needed for react as it escapes by default
+          escapeValue: false, // not needed for react as it escapes by default
         },
         keySeparator: false,
-        nsSeparator: false
+        nsSeparator: false,
       },
       pages: [
         {
           matchPath: '/:lang?/blog/:uid',
           getLanguageFromPath: true,
-          excludeLanguages: ['es']
+          excludeLanguages: ['es'],
         },
         {
           matchPath: '/preview',
-          languages: ['en']
-        }
+          languages: ['en'],
+        },
       ],
       pathTranslations: {
-        de: {'/products': '/produkte'}
-      }
-    }
-  }
+        de: {'/products': '/produkte'},
+      },
+    },
+  },
 ];
 ```
 
@@ -221,7 +221,7 @@ const Header = ({siteTitle}) => {
           to="/"
           style={{
             color: `white`,
-            textDecoration: `none`
+            textDecoration: `none`,
           }}>
           {siteTitle}
         </Link>
@@ -261,7 +261,7 @@ const Header = ({siteTitle}) => {
           to="/"
           style={{
             color: `white`,
-            textDecoration: `none`
+            textDecoration: `none`,
           }}>
           {siteTitle}
         </Link>
@@ -374,8 +374,8 @@ pages: [
   {
     matchPath: '/:lang?/blog/:uid',
     getLanguageFromPath: true,
-    excludeLanguages: ['es']
-  }
+    excludeLanguages: ['es'],
+  },
 ];
 ```
 
@@ -394,13 +394,13 @@ You may also need to add a pages config for the 404 page, if it uses the same pa
 pages: [
   {
     matchPath: '/:lang?/404',
-    getLanguageFromPath: false
+    getLanguageFromPath: false,
   },
   {
     matchPath: '/:lang?/:uid',
     getLanguageFromPath: true,
-    excludeLanguages: ['es']
-  }
+    excludeLanguages: ['es'],
+  },
 ];
 ```
 
@@ -412,8 +412,8 @@ You can limit the languages used to generate versions of a specific page, for ex
 pages: [
   {
     matchPath: '/preview',
-    languages: ['en']
-  }
+    languages: ['en'],
+  },
 ];
 ```
 
@@ -495,7 +495,7 @@ plugins: [
           const url = siteUrl + originalPath;
           const links = [
             {lang: defaultLanguage, url},
-            {lang: 'x-default', url}
+            {lang: 'x-default', url},
           ];
           languages.forEach((lang) => {
             if (lang === defaultLanguage) return;
@@ -505,12 +505,12 @@ plugins: [
             url,
             changefreq: 'daily',
             priority: originalPath === '/' ? 1.0 : 0.7,
-            links
+            links,
           };
         });
-      }
-    }
-  }
+      },
+    },
+  },
 ];
 ```
 
@@ -586,16 +586,16 @@ module.exports = {
         useI18nextDefaultValue: ['en'],
         discardOldKeys: true,
         outputPath: 'locales/{{locale}}/{{ns}}.json',
-        customTransComponents: [['gatsby-plugin-react-i18next', 'Trans']]
-      }
-    ]
+        customTransComponents: [['gatsby-plugin-react-i18next', 'Trans']],
+      },
+    ],
   ],
   overrides: [
     {
       test: [`**/*.ts`, `**/*.tsx`],
-      plugins: [[`@babel/plugin-transform-typescript`, {isTSX: true}]]
-    }
-  ]
+      plugins: [[`@babel/plugin-transform-typescript`, {isTSX: true}]],
+    },
+  ],
 };
 ```
 
@@ -658,10 +658,10 @@ module.exports = {
       resolve: 'gatsby-plugin-react-i18next',
       options: {
         defaultLanguage: 'ja',
-        fallbackLanguage: 'en'
-      }
-    }
-  ]
+        fallbackLanguage: 'en',
+      },
+    },
+  ],
 };
 ```
 

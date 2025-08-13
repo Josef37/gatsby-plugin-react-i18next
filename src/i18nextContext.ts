@@ -9,5 +9,5 @@ export const I18nextContext = React.createContext<I18NextContext>({
   generateDefaultLanguagePage: false,
   originalPath: '/',
   path: '/',
-  pathTranslations: {}
+  pathTranslations: {},
 });

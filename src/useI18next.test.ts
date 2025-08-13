@@ -6,15 +6,15 @@ import {forTesting} from './useI18next';
 const {navigate, changeLanguage} = forTesting;
 
 jest.mock('gatsby', () => ({
-  navigate: jest.fn()
+  navigate: jest.fn(),
 }));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
     i18n: {},
-    ready: true
-  })
+    ready: true,
+  }),
 }));
 
 global.localStorage = {setItem: jest.fn()} as any;
@@ -27,12 +27,12 @@ const mockContext: I18NextContext = {
   generateDefaultLanguagePage: false,
   originalPath: '/test-page',
   path: '/test-page',
-  pathTranslations: {}
+  pathTranslations: {},
 };
 
 const getContext = (context: Partial<I18NextContext>) => ({
   ...mockContext,
-  ...context
+  ...context,
 });
 
 beforeEach(() => {
@@ -83,15 +83,15 @@ describe('path translations', () => {
     de: {
       '/about': '/ueber-uns',
       '/products': '/produkte',
-      '/contact/': '/kontakt/'
-    }
+      '/contact/': '/kontakt/',
+    },
   };
 
   it('uses translated paths when navigating', () => {
     const context = getContext({
       path: '/about',
       originalPath: '/about',
-      pathTranslations
+      pathTranslations,
     });
 
     changeLanguage(context)('de');
@@ -103,7 +103,7 @@ describe('path translations', () => {
     const context = getContext({
       path: '/products',
       originalPath: '/products',
-      pathTranslations
+      pathTranslations,
     });
 
     changeLanguage(context)('de', '/products?category=tools#pricing');
@@ -125,7 +125,7 @@ describe('path translations', () => {
     const context = getContext({
       path: '/blog',
       originalPath: '/blog',
-      pathTranslations
+      pathTranslations,
     });
 
     changeLanguage(context)('de');
